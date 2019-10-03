@@ -1,15 +1,10 @@
 (ns data.db
   (:require [clojure.java.jdbc :as jdbc]))
 
-(def db-spec
-  {:subprotocol "sqlite",
-   :subname "target/test_db.sqlite"})
+;; db-spec の書き方は下記URLを参考にしてください。
+;; https://github.com/clojure/java.jdbc の Example Usage
+;; http://clojure.github.io/java.jdbc/#clojure.java.jdbc/get-connection
 
-
-; (def db-spec
-;   {:connection-uri "jdbc:sqlite:target/test_db.sqlite"})
-
-; (def db-spec
-;   {:classname   "org.sqlite.JDBC"
-;    :subprotocol "sqlite"
-;    :subname     ":memory:"})
+(defn db-spec
+  [config]
+  (:db-spec config))

@@ -1,4 +1,4 @@
-(defproject comment-api-server "0.0.1-SNAPSHOT"
+(defproject comment-api-server "0.0.2-SNAPSHOT"
   :description "FIXME: write description"
   :url "http://example.com/FIXME"
   :license {:name "Eclipse Public License"
@@ -18,6 +18,8 @@
                  [org.slf4j/log4j-over-slf4j "1.7.26"]
                  [com.layerware/hugsql "0.5.1"]
                  [org.xerial/sqlite-jdbc "3.28.0"]
+                 [mysql/mysql-connector-java "8.0.17"]
+                 [org.postgresql/postgresql "42.2.8.jre7"]
                  [org.clojure/java.jdbc "0.7.10"]]
   :min-lein-version "2.0.0"
   :resource-paths ["config", "resources", "sql"]

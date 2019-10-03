@@ -10,6 +10,21 @@
             [data.db :as db]
             [clojure.walk :as walk]))
 
+(def config (atom nil))
+
+(defn load-config
+  [path]
+  (prn "load-config" path)
+  (swap! config (fn [c] (clojure.edn/read-string (slurp path)))))
+
+(defn get-config
+  []
+  @config)
+
+(defn allowed-origins
+  []
+  (:allowed-origins (get-config)))
+
 (def content-length-json-body
   (interceptor/interceptor
    {:name ::content-length-json-body
@@ -34,13 +49,45 @@
 
 (defn create-db-if-not-exists
   []
-  (if (not (exists-db (:subname db/db-spec)))
-    (comments/create-comments-table db/db-spec)))
+  (if (not (exists-db (:subname (db/db-spec (get-config)))))
+    (comments/create-comments-table (db/db-spec (get-config)))))
+
+(defn validate-email-pattern
+  [mail]
+  (let [pattern #"[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?"]
+    (and (string? mail) (re-matches pattern mail))))
+
+(defn validate-email
+  [mail]
+  (if (validate-email-pattern mail)
+    nil
+    "mail pattern mismatch"))
+
+(defn validate-name
+  [name]
+  (if (and (string? name) (> (count name) 0))
+    nil
+    "empty name"))
+
+(defn validate-comment
+  [comment]
+  (if (and (string? comment) (> (count comment) 0))
+    nil
+    "empty comment"))
+
+(defn new-comment-validator
+  [input]
+  (let [name-error (validate-name (:name input))
+        email-error (validate-email (:mail input))
+        comment-error (validate-comment (:comment input))]
+    (if (or name-error email-error comment-error)
+      [name-error email-error comment-error]
+      nil)))
 
 (defn db-comments
   [page-id]
   (create-db-if-not-exists)
-  (let [cs (seq (comments/comments-by-page db/db-spec {:page_id page-id}))]
+  (let [cs (seq (comments/comments-by-page (db/db-spec (get-config)) {:page_id page-id}))]
     (if cs cs '())))
 
 (defn get-comments
@@ -52,8 +99,13 @@
 (defn db-new-comment
   [page-id ip params]
   (create-db-if-not-exists)
-  (let [p (assoc (walk/keywordize-keys params) :page_id page-id :ip ip)]
-    (comments/insert-comment db/db-spec p)))
+  (let [p (assoc (walk/keywordize-keys params) :page_id page-id :ip ip)
+        validation-errors (new-comment-validator p)]
+    (if validation-errors
+      {:success 0, :messages (filter #(not (nil? %)) validation-errors)}
+      (if (comments/insert-comment (db/db-spec (get-config)) p)
+        {:success 1}
+        {:success 0, :messages ["insert failure"]}))))
 
 (defn add-comment
   [request]
@@ -83,7 +135,7 @@
               ;;
               ;; "http://localhost:8080"
               ;;
-              ::http/allowed-origins {:creds true :allowed-origins ["https://www.sysbe.net"]}
+              ; ::http/allowed-origins {:creds true :allowed-origins ["https://www.sysbe.net"]}
 
               ;; Tune the Secure Headers
               ;; and specifically the Content Security Policy appropriate to your service/application

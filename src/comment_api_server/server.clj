@@ -32,8 +32,18 @@
 (defn -main
   "The entry-point for 'lein run'"
   [& args]
+  (if (> (count args) 0)
+    (service/load-config (first args))
+    (service/load-config "config.edn"))
   (println "\nCreating your server...")
-  (server/start runnable-service))
+  ; (server/start runnable-service)
+  (-> service/service ;; start with production configuration
+      (merge {::server/allowed-origins (service/allowed-origins)})
+      ;; Wire up interceptor chains
+      server/default-interceptors
+      server/dev-interceptors
+      server/create-server
+      server/start))
 
 ;; If you package the service up as a WAR,
 ;; some form of the following function sections is required (for io.pedestal.servlet.ClojureVarServlet).
