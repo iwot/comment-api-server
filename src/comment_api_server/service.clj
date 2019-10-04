@@ -8,7 +8,8 @@
             [io.pedestal.log :as log]
             [data.comments :as comments]
             [data.db :as db]
-            [clojure.walk :as walk]))
+            [clojure.walk :as walk]
+            [postal.core :refer [send-message]]))
 
 (def config (atom nil))
 
@@ -24,6 +25,22 @@
 (defn allowed-origins
   []
   (:allowed-origins (get-config)))
+
+(defn sned-new-comment-info
+  [from to]
+  (if (and from to) (send-message
+                     {:from from
+                      :to [to]
+                      :subject "新しいコメントが投稿されました"
+                      :body "新しいコメントが投稿されました"})))
+
+(defn get-info-from-email
+  []
+  (:from-email (:info (get-config))))
+
+(defn get-info-to-email
+  []
+  (:to-email (:info (get-config))))
 
 (def content-length-json-body
   (interceptor/interceptor
@@ -104,7 +121,7 @@
     (if validation-errors
       {:success 0, :messages (filter #(not (nil? %)) validation-errors)}
       (if (comments/insert-comment (db/db-spec (get-config)) p)
-        {:success 1}
+        (do (sned-new-comment-info (get-info-from-email) (get-info-to-email)) {:success 1})
         {:success 0, :messages ["insert failure"]}))))
 
 (defn ip-from-request

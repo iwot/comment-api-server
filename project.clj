@@ -1,4 +1,4 @@
-(defproject comment-api-server "0.0.4-SNAPSHOT"
+(defproject comment-api-server "0.0.5-SNAPSHOT"
   :description "FIXME: write description"
   :url "http://example.com/FIXME"
   :license {:name "Eclipse Public License"
@@ -20,7 +20,8 @@
                  [org.xerial/sqlite-jdbc "3.28.0"]
                  [mysql/mysql-connector-java "8.0.17"]
                  [org.postgresql/postgresql "42.2.8.jre7"]
-                 [org.clojure/java.jdbc "0.7.10"]]
+                 [org.clojure/java.jdbc "0.7.10"]
+                 [com.draines/postal "2.0.3"]]
   :min-lein-version "2.0.0"
   :resource-paths ["config", "resources", "sql"]
   ;; If you use HTTP/2 or ALPN, use the java-agent to pull in the correct alpn-boot dependency

@@ -1,3 +1,3 @@
 {:db-spec {:subprotocol "sqlite", :subname "target/sample_db.sqlite"}
  :allowed-origins {:creds true :allowed-origins ["https://www.example.com"]}
- :admin {:allowed-ip ["127.0.0.1"]}}
+ :info {:from-email nil :to-email nil}}
