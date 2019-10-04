@@ -21,7 +21,7 @@ values (:page_id, :name, :mail, :comment, :ip)
 
 -- :name comments-by-page :? :*
 -- :doc Comments
-select *
+select id, page_id, name, comment
   from comments
  where page_id = :page_id and approved = 1
  order by id desc
