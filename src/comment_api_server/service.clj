@@ -107,10 +107,19 @@
         {:success 1}
         {:success 0, :messages ["insert failure"]}))))
 
+(defn ip-from-request
+  [request]
+  (let [headers (walk/keywordize-keys (:headers request))]
+    (if (:x-real-ip headers)
+      (:x-real-ip headers)
+      (if (:x-forwarded-for headers)
+        (:x-forwarded-for headers)
+        (:remote-addr request)))))
+
 (defn add-comment
   [request]
   (let [page-id (:page-id (:path-params request))
-        result (db-new-comment page-id (:remote-addr request) (:params request))]
+        result (db-new-comment page-id (ip-from-request request) (:params request))]
     (ring-resp/response {:success result})))
 
 (def common-interceptors [(body-params/body-params) http/json-body])
